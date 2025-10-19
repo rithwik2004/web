@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>For Saravani — A Digital Bouquet</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#app{height:100%}
+body{
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: linear-gradient(180deg,#0f172a 0%, #082416 60%);
+  color:#fff;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{
+  width:100%;max-width:960px;height:640px;
+  background:linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border-radius:24px;
+  box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+  display:grid;grid-template-columns:1fr 420px;gap:20px;padding:28px;
+  position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.04)
+}
+.left{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:28px}
+.title{font-size:28px;letter-spacing:0.6px;margin-bottom:12px}
+.subtitle{font-size:14px;color:rgba(255,255,255,0.75);margin-bottom:20px}
+.message{
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border-radius:16px;padding:18px;width:100%;min-height:220px;max-height:380px;overflow:auto;
+  border:1px solid rgba(255,255,255,0.03);
+  font-size:16px;line-height:1.5;color:#fff;backdrop-filter: blur(6px);
+}
+.sentence{opacity:0; transform: translateY(12px); display:block; transition: transform 700ms cubic-bezier(.2,.9,.2,1), opacity 700ms;}
+.sentence.show{opacity:1; transform: translateY(0);}
+.openBtn{
+  margin-top:18px;background: linear-gradient(90deg,#ff7aa2,#ffd36b);
+  color:#071026;border:none;padding:12px 18px;border-radius:12px;
+  font-weight:600;cursor:pointer;
+  box-shadow: 0 8px 30px rgba(255,122,162,0.14);
+  transition:transform 0.3s ease;
+}
+.openBtn:hover{transform:scale(1.05)}
+.right{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+.stack{width:380px;height:520px;border-radius:18px;position:relative;overflow:visible;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.03);
+  display:flex;align-items:center;justify-content:center
+}
+.photo{
+  position:absolute;width:86%;height:70%;border-radius:14px;object-fit:cover;
+  box-shadow:0 18px 40px rgba(2,6,23,0.6);
+  border:6px solid rgba(255,255,255,0.04);
+  transition: transform 700ms cubic-bezier(.2,.9,.2,1), filter 400ms;
+}
+.photo.top{transform:translateY(-12px) rotate(-4deg)}
+.photo.mid{transform:translateY(6px) rotate(3deg)}
+.photo.bot{transform:translateY(22px) rotate(-2deg)}
+canvas#petals{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+.footer{position:absolute;left:28px;bottom:22px;color:rgba(255,255,255,0.6);font-size:12px}
+@media (max-width:880px){
+  .card{grid-template-columns:1fr;grid-template-rows:auto 380px;height:auto;padding:18px}
+  .stack{width:92%;height:360px}
+  .left{align-items:center;text-align:center;padding:20px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="left">
+      <div class="title">For Saravani — A digital bouquet</div>
+      <div class="subtitle">Tap "Open" and see what I made for you.</div>
+      <div class="message" id="message">
+        <span class="sentence">Hey — I made this just for you.</span>
+        <span class="sentence">Every photo is a moment I hold close.</span>
+        <span class="sentence">You've brought colour to my life and calm to my chaos.</span>
+        <span class="sentence">I want to create a thousand more mornings with you.</span>
+        <span class="sentence">Will you be mine?</span>
+      </div>
+      <button id="open" class="openBtn">Open the bouquet 🌸</button>
+    </div>
+    <div class="right">
+      <div class="stack">
+        <img src="images/photo1.jpg" class="photo bot">
+        <img src="images/photo2.jpg" class="photo mid">
+        <img src="images/photo3.jpg" class="photo top">
+      </div>
+    </div>
+    <canvas id="petals"></canvas>
+    <div class="footer">Built with ❤️ by Tanish — For Saravani 🌷</div>
+  </div>
+</div>
+
+<audio id="music" src="music/her-jvke.mp3" loop></audio>
+
+<script>
+const openBtn = document.getElementById('open');
+const message = document.getElementById('message');
+const music = document.getElementById('music');
+const sentences = Array.from(document.querySelectorAll('.sentence'));
+const canvas = document.getElementById('petals');
+const ctx = canvas.getContext('2d');
+let W=0,H=0;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize(); window.addEventListener('resize',resize);
+
+const petals=[];
+function createPetal(){
+  petals.push({
+    x: Math.random()*W,
+    y: -20,
+    vx: (Math.random()-0.5)*0.6,
+    vy: 1+Math.random()*2,
+    r: 6+Math.random()*10,
+    rot: Math.random()*6,
+    rotSpeed: (Math.random()-0.5)*0.08,
+    col: `hsl(${Math.floor(320+Math.random()*40)},80%,65%)`
+  });
+  if(petals.length>200) petals.splice(0,40);
+}
+
+function drawPetals(){
+  ctx.clearRect(0,0,W,H);
+  petals.forEach(p=>{
+    p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed;
+    if(p.y>H){ p.y=-20; p.x=Math.random()*W; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+    ctx.beginPath(); ctx.ellipse(0,0,p.r,p.r*0.6,0,0,Math.PI*2);
+    ctx.fillStyle=p.col; ctx.fill(); ctx.restore();
+  });
+  requestAnimationFrame(drawPetals);
+}
+
+function revealMessage(){
+  sentences.forEach((el,i)=>{
+    setTimeout(()=>el.classList.add('show'), 250+i*500);
+  });
+}
+
+openBtn.addEventListener('click', async ()=>{
+  revealMessage();
+  await music.play().catch(()=>{});
+  for(let i=0;i<100;i++) createPetal();
+  drawPetals();
+});
+</script>
+</body>
+</html>
